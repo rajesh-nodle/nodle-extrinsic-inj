@@ -1,0 +1,8 @@
+node_modules
+yarn-error.log
+package-lock.json
+config/main.json
+config/secret.json
+combined.log
+config.json*
+build

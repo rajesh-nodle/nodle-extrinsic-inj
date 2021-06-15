@@ -1,0 +1,46 @@
+{
+  "name": "nodle-extrinsic-inj",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+	"clean": "rm -rf dist",
+	"build": "npm run clean && tsc",
+	"lint": "tsc --noEmit && eslint 'src/**/*.{js,ts,tsx}' --quiet",
+    "lint:fix": "tsc --noEmit && eslint 'src/**/*.{js,ts,tsx}' --quiet --fix",
+    "start": "NODE_OPTIONS='--max-old-space-size=4096' ts-node src/index.ts start"
+  },
+  "dependencies": {
+    "@polkadot/api": "4.3.1",
+	"ts-node": "^10.0.0",
+	"commander": "^7.2.0",
+	"bs58": "^4.0.1",
+    "typescript": "^4.3.2",
+	"eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^3.4.0",
+	"prettier": "^2.3.1",
+	"@types/node": "^15.12.2",
+	"winston": "^3.3.3"
+  },
+  "devDependencies": {
+    "@ava/typescript": "^1.1.0",
+    "@typescript-eslint/eslint-plugin": "^4.26.1",
+    "@typescript-eslint/parser": "^4.26.1",
+    "ava": "^3.15.0",
+    "concurrently": "^6.2.0",
+    "eslint": "^7.28.0",
+    "eslint-plugin-security": "^1.4.0",
+    "nodemon": "^2.0.7",
+    "open-cli": "^7.0.0"
+  },
+  "ava": {
+    "failFast": false,
+    "verbose": true,
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
+  }
+}
