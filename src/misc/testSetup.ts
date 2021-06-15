@@ -19,12 +19,12 @@ export const startTestSetup = async () => {
 
   const ping_pong = [
     {
-	  name: "ping",
+      name: "ping",
       seed: "card insect figure furnace better miracle lend monitor call inner half top",
       address: "4mJURgirCMN5QL1CgHSnRTScFfrKWSuRQoZNmj8zMJpsYJTn",
     },
     {
-	  name: "pong",
+      name: "pong",
       seed: "milk snake bracket tomato little peanut claim cook gate decide crystal luggage",
       address: "4mhZUKaQ56t3AJSiH62B3qKn1emerm2KvsdyuKbWWuRP7tPK",
     },
@@ -121,7 +121,9 @@ export const startTestSetup = async () => {
     console.log(
       `{TestSetup::${validator.name}} account: ${validator.address} Joins the Validator pool`
     );
-    const valid_join_pool = api.tx.staking.validatorJoinPool(validator.bond.toString());
+    const valid_join_pool = api.tx.staking.validatorJoinPool(
+      validator.bond.toString()
+    );
     try {
       const hash = await valid_join_pool.signAndSend(
         keyring.addFromUri(validator.derivation)
@@ -152,7 +154,7 @@ export const startTestSetup = async () => {
     for (const valid_nomination of nominator.nominations) {
       const nominator_nominates = api.tx.staking.nominatorNominate(
         validators[valid_nomination.valid_id].address,
-        valid_nomination.bond.toString(),
+        valid_nomination.bond.toString()
       );
       try {
         const hash = await nominator_nominates.signAndSend(
@@ -166,25 +168,26 @@ export const startTestSetup = async () => {
   }
 
   for (let i = 0; i < 100000; i++) {
-	let send_from_id = i % 2;
-	let send_to_id = send_from_id ^ 1;
+    const send_from_id = i % 2;
+    const send_to_id = send_from_id ^ 1;
 
-	console.log(
-		`{TestSetup:: Ping-Pong Transfer Iteration ${i} ${send_from_id} -> ${send_to_id}`,
-	);
+    console.log(
+      `{TestSetup:: Ping-Pong Transfer Iteration ${i} ${send_from_id} -> ${send_to_id}`
+    );
 
-	const transfer = api.tx.balances.transfer(
-		ping_pong[send_to_id].address,
-		"12345678912345"
-	  );
-	  try {
-		const hash = await transfer.signAndSend(
-			keyring.addFromUri(ping_pong[send_from_id].seed)
-		);
-	  } catch {
-		console.log(`{TestSetup::ping-pong ${ping_pong[send_from_id].address}} transfer tx failed...`);
-	  }
-	  await sleep(10000);
+    const transfer = api.tx.balances.transfer(
+      ping_pong[send_to_id].address,
+      "12345678912345"
+    );
+    try {
+      const hash = await transfer.signAndSend(
+        keyring.addFromUri(ping_pong[send_from_id].seed)
+      );
+    } catch {
+      console.log(
+        `{TestSetup::ping-pong ${ping_pong[send_from_id].address}} transfer tx failed...`
+      );
+    }
+    await sleep(10000);
   }
-
 };
