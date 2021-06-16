@@ -7,7 +7,8 @@
     "src/logger.ts",
     "src/types.ts",
     "src/util.ts",
-	"src/misc/testSetup.ts"
+	"src/misc/testSetup.ts",
+	"src/misc/testTearDownSetup.ts"
   ],
   "compilerOptions": {
     /* Basic Options */

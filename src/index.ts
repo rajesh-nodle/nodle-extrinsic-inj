@@ -4,7 +4,8 @@ import ApiHandler from "./ApiHandler";
 
 import { sleep } from "./util";
 import { loadConfigDir } from "./config";
-import { startTestSetup } from "./misc/testSetup";
+// import { startTestSetup } from "./misc/testSetup";
+import { startTestSetup } from "./misc/testTearDownSetup";
 
 import {
   SIXTEEN_HOURS,
