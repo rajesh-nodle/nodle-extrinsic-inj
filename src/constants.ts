@@ -71,7 +71,7 @@ export const PolkadotEndpoints = [
 // 	"ws://localhost:9947",
 // ];
 
-export const LocalEndpoints = ["ws://localhost:9944"];
+export const LocalEndpoints = ["ws://localhost:44190"];
 
 /// Endpoint of the Kusama Thousand Validators backend. Used for the Polkadot program.
 export const KOTVBackendEndpoint = "https://kusama.w3f.community";

@@ -11,12 +11,13 @@ import { sleep } from "../util";
 
 export const startTestSetup = async () => {
   //   const handler = await ApiHandler.create(["ws://172.28.1.1:9944"]);
-  const handler = await ApiHandler.create(["ws://localhost:9944"]);
+//   const handler = await ApiHandler.create(["ws://localhost:9944"]);
+  const handler = await ApiHandler.create(["ws://localhost:44190"]);
 
   const api = await handler.getApi();
 
   console.log(
-    `{TestSetup::startTestSetup} handler ws://localhost:9944 is connected: ${handler.isConnected()}`
+    `{TestSetup::startTestSetup} handler ws://localhost:44190 is connected: ${handler.isConnected()}`
   );
 
   const keyring = new Keyring({ type: "sr25519" });
@@ -111,21 +112,23 @@ export const startTestSetup = async () => {
       (nominator_bond_const * 2).toString()
     );
     try {
-      aliceNonce = (
-        await api.query.system.account(aliceKeyPair.address)
-      ).nonce.toNumber();
-
       const hash = await transfer.signAndSend(aliceKeyPair, {
         nonce: aliceNonce,
       });
     } catch {
       console.log(`{TestSetup::${nominator.name}} transfer tx failed...`);
     }
+    aliceNonce++;
     await sleep(6000);
 
     console.log(
       `{TestSetup:: Nominator ${nominator.name}} account: ${nominator.address} Joins the Validator pool`
     );
+
+    const nomiKeyPair = keyring.addFromUri(nominator.seed);
+    let nomiNonce = (
+      await api.query.system.account(nomiKeyPair.address)
+    ).nonce.toNumber();
 
     for (const valid_nomination of nominator.nominations) {
       const nominator_nominates = api.tx.staking.nominatorNominate(
@@ -133,32 +136,43 @@ export const startTestSetup = async () => {
         valid_nomination.bond.toString()
       );
       try {
-        const nomiKeyPair = keyring.addFromUri(nominator.seed);
-        const nomiNonce = (
-          await api.query.system.account(nomiKeyPair.address)
-        ).nonce.toNumber();
         const hash = await nominator_nominates.signAndSend(nomiKeyPair, {
           nonce: nomiNonce,
         });
       } catch {
         console.log(`{TestSetup::${nominator.name}} transfer tx failed...`);
       }
-      await sleep(1000);
+      nomiNonce++;
     }
   }
 
-  const TOTAL_USERS = 400;
+  await sleep(2000);
+
+  const TOTAL_USERS = 100;
   const TOKENS_TO_SEND = "12345678912345";
-  const MAX_ITERATIONS = 5000;
+  const MAX_ITERATIONS = 1000;
+
+  const eveKeyPair = keyring.addFromUri("//Eve");
+  let eveNonce = (
+    await api.query.system.account(eveKeyPair.address)
+  ).nonce.toNumber();
+
+  const nonces = [];
+  console.log("Fetching nonces for accounts...");
+  for (let userNo = 0; userNo <= TOTAL_USERS; userNo++) {
+    const stringSeed = seedFromNum(userNo);
+    const keys = keyring.addFromUri(stringSeed);
+    const nonce = (
+      await api.query.system.account(keys.address)
+    ).nonce.toNumber();
+    nonces.push(nonce);
+  }
+  console.log("All nonces fetched!");
 
   for (let iter_idx = 0; iter_idx < MAX_ITERATIONS; iter_idx++) {
     if (iter_idx % 2 == 0) {
-      console.log("Endowing all users from Alice account...");
-
-      aliceNonce = (
-        await api.query.system.account(aliceKeyPair.address)
-      ).nonce.toNumber();
-      console.log("Alice nonce is " + aliceNonce);
+      console.log("Endowing all users from Eve account...");
+      console.log("Eve nonce is " + eveNonce);
 
       for (let seed = 0; seed <= TOTAL_USERS; seed++) {
         const keypair = keyring.addFromUri(seedFromNum(seed));
@@ -169,43 +183,44 @@ export const startTestSetup = async () => {
             TOKENS_TO_SEND
           );
           const receiverSeed = seedFromNum(seed);
-          console.log(`Alice -> ${receiverSeed} (${keypair.address})`);
-          await mint.signAndSend(aliceKeyPair, { nonce: aliceNonce });
+          console.log(`Eve -> ${receiverSeed} (${keypair.address})`);
+          await mint.signAndSend(eveKeyPair, { nonce: eveNonce });
         } catch {
-          console.log(`TestSetup::Alice transfer tx failed...`);
+          console.log(`TestSetup::Eve transfer tx failed...`);
         }
-        aliceNonce++;
+        eveNonce++;
       }
 
-      console.log(`Iter-${iter_idx} | All users endowed from Alice account!!!`);
-      await sleep(6000);
+      console.log(`Iter-${iter_idx} | All users endowed from Eve account!!!`);
+      await sleep(24000);
     } else {
-      console.log("Seed users -> Alice accounts...");
+      console.log("Seed users -> Eve accounts...");
 
-      for (let seed = 0; seed <= TOTAL_USERS; seed++) {
-        const keypair = keyring.addFromUri(seedFromNum(seed));
+      for (let userNo = 0; userNo <= TOTAL_USERS; userNo++) {
+        const keypair = keyring.addFromUri(seedFromNum(userNo));
 
-        const usrNonce = (
-          await api.query.system.account(keypair.address)
-        ).nonce.toNumber();
+        const usrNonce = nonces[userNo];
+        nonces[userNo]++;
 
         try {
           const transfer = api.tx.balances.transfer(
-            aliceKeyPair.address,
+            eveKeyPair.address,
             TOKENS_TO_SEND
           );
 
-          console.log(`${seedFromNum(seed)} -> Alice (${keypair.address})`);
+          console.log(`${seedFromNum(userNo)} -> Eve (${keypair.address})`);
           await transfer.signAndSend(keypair, { nonce: usrNonce });
         } catch {
-          console.log(`TestSetup::${seedFromNum(seed)} transfer tx failed...`);
+          console.log(
+            `TestSetup::${seedFromNum(userNo)} transfer tx failed...`
+          );
         }
       }
 
       console.log(
-        `Iter-${iter_idx} | All users balance moved to Alice account!!!`
+        `Iter-${iter_idx} | All users balance moved to Eve account!!!`
       );
-      await sleep(6000);
+      await sleep(24000);
     }
   }
 };
